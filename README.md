@@ -1,0 +1,1 @@
+This is my personal ZSH common environment. You're welcome to fork it or whatever. I'm just too cheap to pay for private repos.

@@ -1,0 +1,45 @@
+#@IgnoreInspection AddShebangLine
+repo_str () {
+  BRANCH=`hg branch 2> /dev/null`
+  if [ $? -eq 0 ]
+  then
+    echo "☿ $BRANCH"
+  else
+    BRANCH=`git symbolic-ref --short HEAD 2> /dev/null`
+    if [ $? -eq 0 ]
+    then
+      echo "g $BRANCH"
+    else
+      echo ''
+    fi
+  fi
+}
+
+repo_str_lowres () {
+  BRANCH=`hg branch 2> /dev/null`
+  if [ $? -eq 0 ]
+  then
+    echo "hg $BRANCH"
+  else
+    BRANCH=`git symbolic-ref --short HEAD 2> /dev/null`
+    if [ $? -eq 0 ]
+    then
+      echo "g $BRANCH"
+    else
+      echo ''
+    fi
+  fi
+}
+
+prompt_vcs_setup () {
+  local theme_res=${1:-'highres'}
+  local res_function='repo_str'
+  if [[ "$theme_res" == "lowres" ]]; then
+    res_function='repo_str_lowres'
+  fi
+  PROMPT='%B[%*] %F{cyan}%n%f@%M:%d [%(?.%F{green}.%F{red})%?%f]>%b '
+  RPROMPT='%(?.%F{yellow}$('"$res_function"')%f.%F{red}:(%f)'
+  setopt prompt_subst
+}
+
+prompt_vcs_setup "$@"
