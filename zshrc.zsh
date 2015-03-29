@@ -12,6 +12,11 @@ setopt sharehistory
 setopt nomatch
 setopt notify
 
+setopt promptsubst
+
 autoload -U promptinit
 promptinit
 prompt vcs
+
+antigen apply
+
