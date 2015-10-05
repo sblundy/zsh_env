@@ -1,7 +1,6 @@
 function format_duration
   set -l duration $argv[1]
 
-
   #Select format depending on whether there are minutes, seconds, or just ms
 
   if test -z "$duration"
@@ -19,6 +18,7 @@ function format_duration
     set -l milliseconds (math $duration '%' 1000)
     printf '%d.%03d' $seconds $milliseconds
   else
+    #Display minutes:seconds, w/ milliseconds as fraction of a second
     set -l minutes (math $duration / 60000)
     set duration (math $duration '%' 60000)
     set -l seconds (math $duration / 1000)
