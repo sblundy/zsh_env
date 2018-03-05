@@ -1,3 +1,8 @@
+set segment_separator \uE0B0
+set _prompt_time white
+set _prompt_user green
+set _prompt_path cyan
+
 function _format_duration
   set -l duration $argv[1]
 
@@ -27,46 +32,59 @@ function _format_duration
   end
 end
 
+function start_segment -a bg_color fg_color
+    set_color --background $bg_color
+    set_color $fg_color
+end
+
+function end_segment -a bg_color fg_color next_color
+    set_color --dim $bg_color
+    set_color --background $next_color
+    echo -n "$segment_separator "
+end
 
 function fish_prompt --description 'Write out the prompt'
-	set -l last_status $status
+    set -l last_status $status
 
-	if test -n "$CMD_DURATION"
-		set duration_str (_format_duration $CMD_DURATION)
-	end
+    if test -n "$CMD_DURATION"
+        set duration_str (_format_duration $CMD_DURATION)
+    end
 
-	set -l current_time (date "+%H:%M:%S")
-	# Just calculate this once, to save a few cycles when displaying the prompt
-	if not set -q __fish_prompt_hostname
-		set -g __fish_prompt_hostname (hostname)
-	end
+    start_segment $_prompt_time black
 
-	#Current time and, if present, last command exec time
-	echo -n "[$current_time] "
-	if test -n "$duration_str"
-		printf '(%s) ' $duration_str
-	end
+    set -l current_time (date "+%H:%M:%S")
+    # Just calculate this once, to save a few cycles when displaying the prompt
+    if not set -q __fish_prompt_hostname
+        set -g __fish_prompt_hostname (hostname)
+    end
 
-	#User@host
-  set_color $fish_color_user
-	echo -n "$USER"
-  set_color normal
-	echo -n "@"
-	set_color $fish_color_host
-	echo -n "$__fish_prompt_hostname "
-	set_color normal
+    #Current time and, if present, last command exec time
+    echo -n "[$current_time] "
+    if test -n "$duration_str"
+        printf '(%s)' $duration_str
+    end
+    set_color --background $fish_color_user
+    end_segment $_prompt_time black $_prompt_user
+    start_segment $_prompt_user black
 
-	# PWD
-	set_color $fish_color_cwd
-	echo -n (prompt_pwd)
-	set_color normal
+    #User@host
+    echo -n "$USER"
+    echo -n "@"
+    echo -n "$__fish_prompt_hostname"
+    end_segment $_prompt_user black $_prompt_path
+    start_segment $_prompt_path black
 
-	#Status if last command failed
-	if not test $last_status -eq 0
+    # PWD
+    echo -n (prompt_pwd)
+    set_color normal
+    set_color $_prompt_path
+    echo -n "$segment_separator "
+
+    #Status if last command failed
+    if not test $last_status -eq 0
 		set_color $fish_color_error
-		echo -n " [$last_status]"
-		set_color normal
-	end
+        echo -n "[$last_status] "
+    end
 
-	echo -n " > "
+    set_color normal
 end
