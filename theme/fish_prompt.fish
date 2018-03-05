@@ -1,7 +1,7 @@
 set segment_separator \uE0B0
 
-set error_section_open  \uE0B3
-set error_section_close \uE0B1
+set error_section_open  \uE0B2
+set error_section_close \uE0B0
 
 set _prompt_time white
 set _prompt_user green
@@ -87,7 +87,13 @@ function fish_prompt --description 'Write out the prompt'
     #Status if last command failed
     if not test $last_status -eq 0
 		set_color $fish_color_error
-        echo -n "$error_section_open$last_status$error_section_close "
+        echo -n "$error_section_open"
+		set_color --background $fish_color_error
+		set_color black
+        echo -n "$last_status"
+        set_color normal
+		set_color $fish_color_error
+        echo -n "$error_section_close "
     end
 
     set_color normal
