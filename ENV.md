@@ -36,6 +36,9 @@ Setup
 1. IntelliJ
     * Editor -> Font -> Font = Hasklig && Enable font ligatures
     * Appearance & Behavior -> Appearance -> Theme = Darcula
+    * To enable time tracking
+        1. Preferences -> Plugins -> Time Tracking -> enable
+        1. Preferences -> Tools -> Tasks -> Time Tracking -> enable
 1. iTerm2
     * Preferences -> Profiles -> Text
         * Use this strokes for anti-aliased text: With Dark Backgrounds
