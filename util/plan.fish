@@ -1,5 +1,7 @@
 if test -z "$PLANS_HOME"
-    set PLANS_HOME (pwd)
+    set -l ORG_PWD (pwd)
+    set PLANS_HOME (cd (dirname (status --current-filename)); and pwd)
+    cd $ORG_PWD
 end
 
 function plan --description='Daily planning util'
