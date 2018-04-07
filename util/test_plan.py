@@ -60,6 +60,14 @@ class TestPlanDb(unittest.TestCase):
         sut.to_tsv_string(buf)
         self.assertEqual(buf.getvalue(), '06:00\ta1\t\r\n06:30\ta2\ta2.2\r\n')
 
+    def test_updates_current_plan(self):
+        tsv = io.StringIO('6:00\ta1\r\n6:30\ta2\ta2.2')
+        buf = io.StringIO()
+        sut = plan.PlanDb.from_tsv_string(tsv)
+        sut.set('6:30', 'a2.3')
+        sut.current(buf)
+        self.assertEqual(buf.getvalue(), 'Time  v1\n06:30 a2.3\n')
+
 
 if __name__ == '__main__':
     unittest.main()

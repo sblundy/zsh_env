@@ -17,6 +17,11 @@ class PlanDb:
             plan = self.plans[len(self.plans) - 1]
             plan.current(out, start, max_columns=max_columns)
 
+    def set(self, time, action):
+        if len(self.plans) > 0:
+            plan = self.plans[len(self.plans) - 1]
+            plan.set(time, action)
+
     @staticmethod
     def from_tsv_string(tsvstr):
         plan_db = PlanDb()
@@ -53,6 +58,10 @@ class PlanDb:
     def read(file_name):
         with open(file_name, newline='') as tsvfile:
             return PlanDb.from_tsv_string(tsvfile)
+
+    def write(self, file_name):
+        with open(file_name, newline='', mode='w') as tsvfile:
+            self.to_tsv_string(tsvfile)
 
     @staticmethod
     def init(file_name):
@@ -137,7 +146,9 @@ def main():
     elif action == 'replan':
         raise NotImplementedError
     elif action == 'set':
-        raise NotImplementedError
+        plan = PlanDb.read(file)
+        plan.set(sys.argv[3], sys.argv[4])
+        plan.write(file)
 
 
 if __name__ == "__main__":
