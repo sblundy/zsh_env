@@ -36,6 +36,14 @@ class TestPlan(unittest.TestCase):
         sut.current(buf, datetime.time(6, 30))
         self.assertEqual(buf.getvalue(), 'Time  v1\n06:30 test2\n')
 
+    def test_current_columns_env(self):
+        buf = io.StringIO()
+        sut = plan.Plan(1)
+        sut.set('6:00', 'test')
+        sut.set('6:30', 'test2')
+        sut.current(buf, None, max_columns=10)
+        self.assertEqual(buf.getvalue(), 'Time  v1\n06:00 test\n06:30 tes…\n')
+
 
 class TestPlanDb(unittest.TestCase):
     def test_from_tsv_string(self):

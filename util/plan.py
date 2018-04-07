@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import datetime
+import shutil
 import sys
 import csv
 import re
@@ -11,10 +12,10 @@ class PlanDb:
     def __init__(self):
         self.plans = []
 
-    def current(self, out, start=None):
+    def current(self, out, start=None, max_columns=None):
         if len(self.plans) > 0:
             plan = self.plans[len(self.plans) - 1]
-            plan.current(out, start)
+            plan.current(out, start, max_columns=max_columns)
 
     @staticmethod
     def from_tsv_string(tsvstr):
@@ -81,8 +82,7 @@ class Plan:
     def get(self, time):
         return self.plan[toindex(time)]
 
-    def current(self, out, start):
-        # TODO respect COLUMNS env variable
+    def current(self, out, start, max_columns=None):
         if start is None:
             start_idx = self.min
         else:
@@ -93,7 +93,10 @@ class Plan:
 
         print('Time  v' + str(self.version), file=out)
         for idx in range(start_idx, self.max + 1):
-            print(to_time_str(idx) + ' ' + self.plan[idx], file=out)
+            line = to_time_str(idx) + ' ' + self.plan[idx]
+            if max_columns is not None and len(line) > max_columns:
+                line = line[0:max_columns - 1] + '…'
+            print(line, file=out)
 
 
 TIME_REGEX = re.compile("([012]?\d):(\d\d)")
@@ -124,7 +127,9 @@ def main():
 
     if action == 'current':
         plan = PlanDb.read(file)
-        plan.current(sys.stdout, datetime.datetime.now().time())
+        size = shutil.get_terminal_size((-1, -1))
+        max_columns = size.columns if size.columns != -1 else None
+        plan.current(sys.stdout, datetime.datetime.now().time(), max_columns=max_columns)
     elif action == 'init':
         PlanDb.init(file)
     elif action == 'list':
