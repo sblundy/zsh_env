@@ -22,6 +22,20 @@ class PlanDb:
             plan = self.plans[len(self.plans) - 1]
             plan.set(time, action)
 
+    def replan(self, starting):
+        if len(self.plans) > 0:
+            old_plan = self.plans[len(self.plans) - 1]
+            new_plan = Plan(len(self.plans) + 1)
+
+            if starting.minute < 30:
+                start_idx = starting.hour * 2
+            else:
+                start_idx = (starting.hour * 2) + 1
+            for idx in range(start_idx, old_plan.max + 1):
+                new_plan.set(to_time_str(idx), old_plan.get(to_time_str(idx)))
+            self.plans.append(new_plan)
+
+
     @staticmethod
     def from_tsv_string(tsvstr):
         plan_db = PlanDb()
@@ -33,7 +47,7 @@ class PlanDb:
                     for i in range(1, len(row)):
                         plan_idx = i - 1
                         if len(plan_db.plans) == plan_idx:
-                            plan_db.plans.append(Plan(plan_idx))
+                            plan_db.plans.append(Plan(plan_idx + 1))
                         plan = plan_db.plans[plan_idx]
                         plan.set(time, row[i])
         return plan_db
@@ -144,7 +158,9 @@ def main():
     elif action == 'list':
         raise NotImplementedError
     elif action == 'replan':
-        raise NotImplementedError
+        plan = PlanDb.read(file)
+        plan.replan(datetime.datetime.now().time())
+        plan.write(file)
     elif action == 'set':
         plan = PlanDb.read(file)
         plan.set(sys.argv[3], sys.argv[4])

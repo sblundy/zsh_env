@@ -51,7 +51,7 @@ class TestPlanDb(unittest.TestCase):
         buf = io.StringIO()
         sut = plan.PlanDb.from_tsv_string(tsv)
         sut.current(buf)
-        self.assertEqual(buf.getvalue(), 'Time  v1\n06:30 a2.2\n')
+        self.assertEqual(buf.getvalue(), 'Time  v2\n06:30 a2.2\n')
 
     def test_to_tsv_string(self):
         tsv = io.StringIO('6:00\ta1\r\n6:30\ta2\ta2.2')
@@ -66,7 +66,15 @@ class TestPlanDb(unittest.TestCase):
         sut = plan.PlanDb.from_tsv_string(tsv)
         sut.set('6:30', 'a2.3')
         sut.current(buf)
-        self.assertEqual(buf.getvalue(), 'Time  v1\n06:30 a2.3\n')
+        self.assertEqual(buf.getvalue(), 'Time  v2\n06:30 a2.3\n')
+
+    def test_replan(self):
+        tsv = io.StringIO('6:00\ta1\r\n6:30\ta2')
+        buf = io.StringIO()
+        sut = plan.PlanDb.from_tsv_string(tsv)
+        sut.replan(datetime.time(6, 30))
+        sut.current(buf, start=datetime.time(6, 30))
+        self.assertEqual(buf.getvalue(), 'Time  v2\n06:30 a2\n')
 
 
 if __name__ == '__main__':

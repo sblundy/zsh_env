@@ -23,7 +23,7 @@ function plan --description='Daily planning util'
             touch $filename
         end
     case '*'
-        if test $action = 'set'
+        if test $action = 'set' or test $action = 'replan'
             cp $filename "$filename.bk"
         end
         command python3 "$PLANS_HOME/plan.py" $filename $action $argv[2..-1]
