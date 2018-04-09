@@ -76,6 +76,20 @@ class TestPlanDb(unittest.TestCase):
         sut.current(buf, start=datetime.time(6, 30))
         self.assertEqual(buf.getvalue(), 'Time  v2\n06:30 a2\n')
 
+    def test_set_on_empty_plan(self):
+        buf = io.StringIO()
+        sut = plan.PlanDb()
+        sut.set('12:00', 'test')
+        sut.current(buf, start=datetime.time(12, 00))
+        self.assertEqual(buf.getvalue(), 'Time  v1\n12:00 test\n')
+
+    def test_to_tsv_string_on_empty_plan(self):
+        buf = io.StringIO()
+        sut = plan.PlanDb()
+        sut.to_tsv_string(buf)
+        self.assertGreater(len(buf.getvalue()), len("00:00\r\n"))
+        self.assertEqual(buf.getvalue()[0:7], "00:00\r\n")
+
 
 if __name__ == '__main__':
     unittest.main()

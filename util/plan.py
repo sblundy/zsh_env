@@ -18,9 +18,10 @@ class PlanDb:
             plan.current(out, start, max_columns=max_columns)
 
     def set(self, time, action):
-        if len(self.plans) > 0:
-            plan = self.plans[len(self.plans) - 1]
-            plan.set(time, action)
+        if len(self.plans) == 0:
+            self.plans.append(Plan(1))
+        plan = self.plans[len(self.plans) - 1]
+        plan.set(time, action)
 
     def replan(self, starting):
         if len(self.plans) > 0:
@@ -54,11 +55,15 @@ class PlanDb:
 
     def to_tsv_string(self, out):
         tsv = csv.writer(out, dialect=csv.excel_tab)
-        start_idx = self.plans[0].min
-        end_idx = self.plans[0].max
-        for plan in self.plans:
-            start_idx = min(start_idx, plan.min)
-            end_idx = max(end_idx, plan.max)
+        if len(self.plans) == 0:
+            start_idx = 0
+            end_idx = 47
+        else:
+            start_idx = self.plans[0].min
+            end_idx = self.plans[0].max
+            for plan in self.plans:
+                start_idx = min(start_idx, plan.min)
+                end_idx = max(end_idx, plan.max)
 
         for idx in range(start_idx, end_idx + 1):
             time = to_time_str(idx)
