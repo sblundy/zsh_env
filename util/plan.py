@@ -36,7 +36,6 @@ class PlanDb:
                 new_plan.set(to_time_str(idx), old_plan.get(to_time_str(idx)))
             self.plans.append(new_plan)
 
-
     @staticmethod
     def from_tsv_string(tsvstr):
         plan_db = PlanDb()
@@ -100,12 +99,17 @@ class Plan:
         self.max = 0
 
     def set(self, time, action):
-        idx = toindex(time)
-        if idx < self.min:
-            self.min = idx
-        if idx > self.max:
-            self.max = idx
-        self.plan[idx] = action
+        (start, end) = parse_range(time)
+        if end is None:
+            indexes = [start]
+        else:
+            indexes = range(start, end + 1)
+        for idx in indexes:
+            if idx < self.min:
+                self.min = idx
+            if idx > self.max:
+                self.max = idx
+            self.plan[idx] = action
 
     def get(self, time):
         return self.plan[toindex(time)]
@@ -127,14 +131,30 @@ class Plan:
             print(line, file=out)
 
 
-TIME_REGEX = re.compile("([012]?\d):(\d\d)")
+class TimeFormatException(Exception):
+    def __init__(self, message):
+        self.message = message
+
+
+TIME_REGEX = re.compile("([012]?\d)(?::(\d\d))?")
+TIME_RANGE = re.compile("([0-9:]{1,5})-([0-9:]{1,5})")
+
+
+def parse_range(time):
+    result = TIME_RANGE.match(time)
+    if result is None:
+        return toindex(time), None
+    start = result.group(1)
+    end = result.group(2)
+    return toindex(start), toindex(end)
 
 
 def toindex(time):
     result = TIME_REGEX.match(time)
-    assert result is not None
+    if result is None:
+        raise TimeFormatException('"' + time + '" is not a valid time')
     hour = int(result.group(1))
-    minute = int(result.group(2))
+    minute = 0 if result.group(2) is None else int(result.group(2))
 
     if minute < 30:
         return hour * 2
@@ -153,23 +173,27 @@ def main():
     file = sys.argv[1]
     action = sys.argv[2]
 
-    if action == 'current':
-        plan = PlanDb.read(file)
-        size = shutil.get_terminal_size((-1, -1))
-        max_columns = size.columns if size.columns != -1 else None
-        plan.current(sys.stdout, datetime.datetime.now().time(), max_columns=max_columns)
-    elif action == 'init':
-        PlanDb.init(file)
-    elif action == 'list':
-        raise NotImplementedError
-    elif action == 'replan':
-        plan = PlanDb.read(file)
-        plan.replan(datetime.datetime.now().time())
-        plan.write(file)
-    elif action == 'set':
-        plan = PlanDb.read(file)
-        plan.set(sys.argv[3], sys.argv[4])
-        plan.write(file)
+    try:
+        if action == 'current':
+            plan = PlanDb.read(file)
+            size = shutil.get_terminal_size((-1, -1))
+            max_columns = size.columns if size.columns != -1 else None
+            plan.current(sys.stdout, datetime.datetime.now().time(), max_columns=max_columns)
+        elif action == 'init':
+            PlanDb.init(file)
+        elif action == 'list':
+            raise NotImplementedError
+        elif action == 'replan':
+            plan = PlanDb.read(file)
+            plan.replan(datetime.datetime.now().time())
+            plan.write(file)
+        elif action == 'set':
+            plan = PlanDb.read(file)
+            plan.set(sys.argv[3], sys.argv[4])
+            plan.write(file)
+    except TimeFormatException as err:
+        print(err.message, file=sys.stderr)
+        sys.exit(1)
 
 
 if __name__ == "__main__":

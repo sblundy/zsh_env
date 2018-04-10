@@ -44,6 +44,28 @@ class TestPlan(unittest.TestCase):
         sut.current(buf, None, max_columns=10)
         self.assertEqual(buf.getvalue(), 'Time  v1\n06:00 test\n06:30 tes…\n')
 
+    def test_get(self):
+        sut = plan.Plan(1)
+        sut.set('6:00', 'test')
+        output = sut.get('6:00')
+        self.assertEqual(output, 'test')
+
+    def test_get_invalid(self):
+        sut = plan.Plan(1)
+        sut.set('6:00', 'test')
+        with self.assertRaises(plan.TimeFormatException):
+            sut.get('xxxx')
+
+    def test_set_range(self):
+        sut = plan.Plan(1)
+        sut.set('6:00-6:30', 'test')
+        output = sut.get('6:00')
+        self.assertEqual(output, 'test')
+        output = sut.get('6:30')
+        self.assertEqual(output, 'test')
+        output = sut.get('7:00')
+        self.assertEqual(output, '')
+
 
 class TestPlanDb(unittest.TestCase):
     def test_from_tsv_string(self):
@@ -89,6 +111,24 @@ class TestPlanDb(unittest.TestCase):
         sut.to_tsv_string(buf)
         self.assertGreater(len(buf.getvalue()), len("00:00\r\n"))
         self.assertEqual(buf.getvalue()[0:7], "00:00\r\n")
+
+
+class TestTimeStringParsing(unittest.TestCase):
+    def test_simple(self):
+        output = plan.toindex('6:00')
+        self.assertEqual(output, 12)
+
+    def test_hour_only(self):
+        output = plan.toindex('6')
+        self.assertEqual(output, 12)
+
+    def test_range_single_time(self):
+        output = plan.parse_range('6:00')
+        self.assertEqual(output, (12, None))
+
+    def test_range(self):
+        output = plan.parse_range('6:00-7:00')
+        self.assertEqual(output, (12, 14))
 
 
 if __name__ == '__main__':
