@@ -22,9 +22,17 @@ function plan --description='Daily planning util'
         else
             touch $filename
         end
+    case set replan
+        if not test -e "$filename"
+            echo "Today's plan hasn't been initialized" 1>&2
+            return 1
+        end
+        cp $filename "$filename.bk"
+        command python3 "$PLANS_HOME/plan.py" $filename $action $argv[2..-1]
     case '*'
-        if test $action = 'set' or test $action = 'replan'
-            cp $filename "$filename.bk"
+        if not test -e "$filename"
+            echo "Today's plan hasn't been initialized" 1>&2
+            return 1
         end
         command python3 "$PLANS_HOME/plan.py" $filename $action $argv[2..-1]
     end
