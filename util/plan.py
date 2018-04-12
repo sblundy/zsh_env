@@ -17,6 +17,11 @@ class PlanDb:
             plan = self.plans[len(self.plans) - 1]
             plan.current(out, start, max_columns=max_columns)
 
+    def list(self, out, version=-1):
+        if len(self.plans) > 0:
+            plan_idx = version - 1 if version != -1 else len(self.plans) - 1
+            self.plans[plan_idx].list(out)
+
     def set(self, time, action):
         if len(self.plans) == 0:
             self.plans.append(Plan(1))
@@ -122,13 +127,18 @@ class Plan:
             if start.minute >= 30:
                 idx = idx + 1
             start_idx = max(idx, self.min)
+        self._print_list(out, start_idx, max_columns)
 
-        print('Time  v' + str(self.version), file=out)
+    def _print_list(self, out, start_idx, max_columns=None):
+        print('\x1B[1mTime  v' + str(self.version) + '\x1B[0m', file=out)
         for idx in range(start_idx, self.max + 1):
             line = to_time_str(idx) + ' ' + self.plan[idx]
             if max_columns is not None and len(line) > max_columns:
                 line = line[0:max_columns - 1] + '…'
             print(line, file=out)
+
+    def list(self, out):
+        self._print_list(out, self.min)
 
 
 class TimeFormatException(Exception):
@@ -182,7 +192,9 @@ def main():
         elif action == 'init':
             PlanDb.init(file)
         elif action == 'list':
-            raise NotImplementedError
+            plan = PlanDb.read(file)
+            version = -1 if len(sys.argv) < 4 else int(sys.argv[3])
+            plan.list(sys.stdout, version)
         elif action == 'replan':
             plan = PlanDb.read(file)
             plan.replan(datetime.datetime.now().time())

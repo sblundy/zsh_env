@@ -11,14 +11,14 @@ class TestPlan(unittest.TestCase):
         sut.set('6:00', 'test')
         sut.set('6:30', 'test2')
         sut.current(buf, None)
-        self.assertEqual(buf.getvalue(), 'Time  v1\n06:00 test\n06:30 test2\n')
+        self.assertEqual(buf.getvalue(), '\x1b[1mTime  v1\x1b[0m\n06:00 test\n06:30 test2\n')
 
     def test_current_multiple(self):
         buf = io.StringIO()
         sut = plan.Plan(1)
         sut.set('6:00', 'test')
         sut.current(buf, None)
-        self.assertEqual(buf.getvalue(), 'Time  v1\n06:00 test\n')
+        self.assertEqual(buf.getvalue(), '\x1b[1mTime  v1\x1b[0m\n06:00 test\n')
 
     def test_current_gap(self):
         buf = io.StringIO()
@@ -26,7 +26,7 @@ class TestPlan(unittest.TestCase):
         sut.set('6:00', 'test')
         sut.set('7:00', 'test3')
         sut.current(buf, None)
-        self.assertEqual(buf.getvalue(), 'Time  v1\n06:00 test\n06:30 \n07:00 test3\n')
+        self.assertEqual(buf.getvalue(), '\x1b[1mTime  v1\x1b[0m\n06:00 test\n06:30 \n07:00 test3\n')
 
     def test_current_with_start(self):
         buf = io.StringIO()
@@ -34,7 +34,7 @@ class TestPlan(unittest.TestCase):
         sut.set('6:00', 'test')
         sut.set('6:30', 'test2')
         sut.current(buf, datetime.time(6, 30))
-        self.assertEqual(buf.getvalue(), 'Time  v1\n06:30 test2\n')
+        self.assertEqual(buf.getvalue(), '\x1b[1mTime  v1\x1b[0m\n06:30 test2\n')
 
     def test_current_columns_env(self):
         buf = io.StringIO()
@@ -42,7 +42,7 @@ class TestPlan(unittest.TestCase):
         sut.set('6:00', 'test')
         sut.set('6:30', 'test2')
         sut.current(buf, None, max_columns=10)
-        self.assertEqual(buf.getvalue(), 'Time  v1\n06:00 test\n06:30 tes…\n')
+        self.assertEqual(buf.getvalue(), '\x1b[1mTime  v1\x1b[0m\n06:00 test\n06:30 tes…\n')
 
     def test_get(self):
         sut = plan.Plan(1)
@@ -73,7 +73,7 @@ class TestPlanDb(unittest.TestCase):
         buf = io.StringIO()
         sut = plan.PlanDb.from_tsv_string(tsv)
         sut.current(buf)
-        self.assertEqual(buf.getvalue(), 'Time  v2\n06:30 a2.2\n')
+        self.assertEqual(buf.getvalue(), '\x1b[1mTime  v2\x1b[0m\n06:30 a2.2\n')
 
     def test_to_tsv_string(self):
         tsv = io.StringIO('6:00\ta1\r\n6:30\ta2\ta2.2')
@@ -88,7 +88,7 @@ class TestPlanDb(unittest.TestCase):
         sut = plan.PlanDb.from_tsv_string(tsv)
         sut.set('6:30', 'a2.3')
         sut.current(buf)
-        self.assertEqual(buf.getvalue(), 'Time  v2\n06:30 a2.3\n')
+        self.assertEqual(buf.getvalue(), '\x1b[1mTime  v2\x1b[0m\n06:30 a2.3\n')
 
     def test_replan(self):
         tsv = io.StringIO('6:00\ta1\r\n6:30\ta2')
@@ -96,14 +96,14 @@ class TestPlanDb(unittest.TestCase):
         sut = plan.PlanDb.from_tsv_string(tsv)
         sut.replan(datetime.time(6, 30))
         sut.current(buf, start=datetime.time(6, 30))
-        self.assertEqual(buf.getvalue(), 'Time  v2\n06:30 a2\n')
+        self.assertEqual(buf.getvalue(), '\x1b[1mTime  v2\x1b[0m\n06:30 a2\n')
 
     def test_set_on_empty_plan(self):
         buf = io.StringIO()
         sut = plan.PlanDb()
         sut.set('12:00', 'test')
         sut.current(buf, start=datetime.time(12, 00))
-        self.assertEqual(buf.getvalue(), 'Time  v1\n12:00 test\n')
+        self.assertEqual(buf.getvalue(), '\x1b[1mTime  v1\x1b[0m\n12:00 test\n')
 
     def test_to_tsv_string_on_empty_plan(self):
         buf = io.StringIO()
@@ -111,6 +111,20 @@ class TestPlanDb(unittest.TestCase):
         sut.to_tsv_string(buf)
         self.assertGreater(len(buf.getvalue()), len("00:00\r\n"))
         self.assertEqual(buf.getvalue()[0:7], "00:00\r\n")
+
+    def test_list(self):
+        tsv = io.StringIO('6:00\ta1\r\n6:30\ta2\ta2.2')
+        buf = io.StringIO()
+        sut = plan.PlanDb.from_tsv_string(tsv)
+        sut.list(buf)
+        self.assertEqual(buf.getvalue(), '\x1b[1mTime  v2\x1b[0m\n06:30 a2.2\n')
+
+    def test_list_version(self):
+        tsv = io.StringIO('6:00\ta1\r\n6:30\ta2\ta2.2')
+        buf = io.StringIO()
+        sut = plan.PlanDb.from_tsv_string(tsv)
+        sut.list(buf, 1)
+        self.assertEqual(buf.getvalue(), '\x1b[1mTime  v1\x1b[0m\n06:00 a1\n06:30 a2\n')
 
 
 class TestTimeStringParsing(unittest.TestCase):
