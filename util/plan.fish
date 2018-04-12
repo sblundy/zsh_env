@@ -22,7 +22,7 @@ function plan --description='Daily planning util'
         else
             touch $filename
         end
-    case set replan
+    case set replan rm
         if not test -e "$filename"
             echo "Today's plan hasn't been initialized" 1>&2
             return 1

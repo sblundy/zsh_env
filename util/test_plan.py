@@ -109,8 +109,7 @@ class TestPlanDb(unittest.TestCase):
         buf = io.StringIO()
         sut = plan.PlanDb()
         sut.to_tsv_string(buf)
-        self.assertGreater(len(buf.getvalue()), len("00:00\r\n"))
-        self.assertEqual(buf.getvalue()[0:7], "00:00\r\n")
+        self.assertEqual(len(buf.getvalue()), 0)
 
     def test_list(self):
         tsv = io.StringIO('6:00\ta1\r\n6:30\ta2\ta2.2')
@@ -125,6 +124,30 @@ class TestPlanDb(unittest.TestCase):
         sut = plan.PlanDb.from_tsv_string(tsv)
         sut.list(buf, 1)
         self.assertEqual(buf.getvalue(), '\x1b[1mTime  v1\x1b[0m\n06:00 a1\n06:30 a2\n')
+
+    def test_rm(self):
+        tsv = io.StringIO('5:30\ta0\r\n6:00\ta1\r\n6:30\ta2')
+        buf = io.StringIO()
+        sut = plan.PlanDb.from_tsv_string(tsv)
+        sut.rm('6:00')
+        sut.list(buf, 1)
+        self.assertEqual(buf.getvalue(), '\x1b[1mTime  v1\x1b[0m\n05:30 a0\n06:00 \n06:30 a2\n')
+
+    def test_rm_resets_min(self):
+        tsv = io.StringIO('6:00\ta1\r\n6:30\ta2')
+        buf = io.StringIO()
+        sut = plan.PlanDb.from_tsv_string(tsv)
+        sut.rm('6:00')
+        sut.list(buf, 1)
+        self.assertEqual(buf.getvalue(), '\x1b[1mTime  v1\x1b[0m\n06:30 a2\n')
+
+    def test_rm_resets_max(self):
+        tsv = io.StringIO('6:00\ta1\r\n6:30\ta2')
+        buf = io.StringIO()
+        sut = plan.PlanDb.from_tsv_string(tsv)
+        sut.rm('6:30')
+        sut.list(buf, 1)
+        self.assertEqual(buf.getvalue(), '\x1b[1mTime  v1\x1b[0m\n06:00 a1\n')
 
 
 class TestTimeStringParsing(unittest.TestCase):

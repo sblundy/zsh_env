@@ -41,6 +41,11 @@ class PlanDb:
                 new_plan.set(to_time_str(idx), old_plan.get(to_time_str(idx)))
             self.plans.append(new_plan)
 
+    def rm(self, time):
+        if len(self.plans) > 0:
+            plan = self.plans[len(self.plans) - 1]
+            plan.rm(time)
+
     @staticmethod
     def from_tsv_string(tsvstr):
         plan_db = PlanDb()
@@ -72,10 +77,15 @@ class PlanDb:
         for idx in range(start_idx, end_idx + 1):
             time = to_time_str(idx)
             row = [time]
+            has_values = False
             for plan in self.plans:
-                row.append(plan.get(time))
+                value = plan.get(time)
+                row.append(value)
+                if len(value) > 0:
+                    has_values = True
 
-            tsv.writerow(row)
+            if has_values:
+                tsv.writerow(row)
 
     @staticmethod
     def read(file_name):
@@ -116,6 +126,15 @@ class Plan:
                 self.max = idx
             self.plan[idx] = action
 
+        while self.min < len(self.plan) and (self.plan[self.min] == '' or self.plan[self.min] is None):
+            self.min += 1
+
+        while self.max >= 0 and (self.plan[self.max] == '' or self.plan[self.max] is None):
+            self.max -= 1
+
+    def rm(self, time):
+        self.set(time, None)
+
     def get(self, time):
         return self.plan[toindex(time)]
 
@@ -132,7 +151,7 @@ class Plan:
     def _print_list(self, out, start_idx, max_columns=None):
         print('\x1B[1mTime  v' + str(self.version) + '\x1B[0m', file=out)
         for idx in range(start_idx, self.max + 1):
-            line = to_time_str(idx) + ' ' + self.plan[idx]
+            line = to_time_str(idx) + ' ' + ('' if self.plan[idx] is None else self.plan[idx])
             if max_columns is not None and len(line) > max_columns:
                 line = line[0:max_columns - 1] + '…'
             print(line, file=out)
@@ -202,6 +221,10 @@ def main():
         elif action == 'set':
             plan = PlanDb.read(file)
             plan.set(sys.argv[3], sys.argv[4])
+            plan.write(file)
+        elif action == 'rm':
+            plan = PlanDb.read(file)
+            plan.rm(sys.argv[3])
             plan.write(file)
     except TimeFormatException as err:
         print(err.message, file=sys.stderr)
