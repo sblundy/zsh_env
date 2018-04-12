@@ -114,12 +114,7 @@ class Plan:
         self.max = 0
 
     def set(self, time, action):
-        (start, end) = parse_range(time)
-        if end is None:
-            indexes = [start]
-        else:
-            indexes = range(start, end + 1)
-        for idx in indexes:
+        for idx in parse_time(time):
             if idx < self.min:
                 self.min = idx
             if idx > self.max:
@@ -167,6 +162,17 @@ class TimeFormatException(Exception):
 
 TIME_REGEX = re.compile("([012]?\d)(?::(\d\d))?")
 TIME_RANGE = re.compile("([0-9:]{1,5})-([0-9:]{1,5})")
+
+
+def parse_time(time):
+    times = []
+    for segment in time.split(','):
+        (start, end) = parse_range(segment)
+        if end is None:
+            times.append(start)
+        else:
+            times.extend(range(start, end + 1))
+    return times
 
 
 def parse_range(time):

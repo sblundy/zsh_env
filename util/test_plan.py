@@ -66,6 +66,30 @@ class TestPlan(unittest.TestCase):
         output = sut.get('7:00')
         self.assertEqual(output, '')
 
+    def test_set_comma_separated(self):
+        sut = plan.Plan(1)
+        sut.set('6:00,7:00', 'test')
+        output = sut.get('6:00')
+        self.assertEqual(output, 'test')
+        output = sut.get('6:30')
+        self.assertEqual(output, '')
+        output = sut.get('7:00')
+        self.assertEqual(output, 'test')
+
+    def test_set_comma_separated_with_range(self):
+        sut = plan.Plan(1)
+        sut.set('6:00-6:30,7:30-8:00', 'test')
+        output = sut.get('6:00')
+        self.assertEqual(output, 'test')
+        output = sut.get('6:30')
+        self.assertEqual(output, 'test')
+        output = sut.get('7:00')
+        self.assertEqual(output, '')
+        output = sut.get('7:30')
+        self.assertEqual(output, 'test')
+        output = sut.get('8:00')
+        self.assertEqual(output, 'test')
+
 
 class TestPlanDb(unittest.TestCase):
     def test_from_tsv_string(self):
