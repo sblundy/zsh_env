@@ -17,10 +17,20 @@ function plan --description='Daily planning util'
 
     switch $action
     case create
-        if test -e "$plans_dir/Default.plan"
-            cp "$plans_dir/Default.plan" $filename
-        else
+        set -l default_file_name "Default"
+        if set -q argv[2]
+            set default_file_name $argv[2]
+        else if not test -e "$plans_dir/Default.plan"
             touch $filename
+            return 0
+        end
+
+        set -l default_file "$plans_dir/$default_file_name.plan"
+        if not test -e "$default_file"
+            echo "Error: $default_file does not exist" 1>&2
+            return 1
+        else
+            cp "$default_file" $filename
         end
     case set replan rm
         if not test -e "$filename"
