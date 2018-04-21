@@ -40,3 +40,22 @@ function plan --description='Daily planning util'
         command python3 "$PLANS_HOME/plan.py" $CMD_ARGS
     end
 end
+
+function __plan_needs_command
+  set -l cmd (commandline -opc)
+
+  if test $cmd[-1] = 'plan'
+    return 0
+  else
+    return 1
+  end
+end
+
+complete -f -c plan
+complete -f -c plan -n '__plan_needs_command' -a 'create'
+complete -f -c plan -n '__plan_needs_command' -a 'current'
+complete -f -c plan -n '__plan_needs_command' -a 'init'
+complete -f -c plan -n '__plan_needs_command' -a 'list'
+complete -f -c plan -n '__plan_needs_command' -a 'replan'
+complete -f -c plan -n '__plan_needs_command' -a 'set'
+complete -f -c plan -n '__plan_needs_command' -a 'rm'
