@@ -33,10 +33,7 @@ class PlanDb:
             old_plan = self.plans[len(self.plans) - 1]
             new_plan = Plan(len(self.plans) + 1)
 
-            if starting.minute < 30:
-                start_idx = starting.hour * 2
-            else:
-                start_idx = (starting.hour * 2) + 1
+            start_idx = to_time_index(starting.hour, starting.minute)
             for idx in range(start_idx, old_plan.max + 1):
                 new_plan.set(to_time_str(idx), old_plan.get(to_time_str(idx)))
             self.plans.append(new_plan)
@@ -96,13 +93,6 @@ class PlanDb:
         with open(file_name, newline='', mode='w') as tsvfile:
             self.to_tsv_string(tsvfile)
 
-    @staticmethod
-    def init(file_name):
-        with open(file_name, newline='', mode='w') as tsvfile:
-            tsv = csv.writer(tsvfile, dialect=csv.excel_tab)
-            for idx in range(0, 48):
-                tsv.writerow([to_time_str(idx)])
-
 
 class Plan:
     def __init__(self, version):
@@ -131,15 +121,13 @@ class Plan:
         self.set(time, None)
 
     def get(self, time):
-        return self.plan[toindex(time)]
+        return self.plan[to_time_index_from_string(time)]
 
     def current(self, out, start, max_columns=None):
         if start is None:
             start_idx = self.min
         else:
-            idx = (start.hour * 2)
-            if start.minute >= 30:
-                idx = idx + 1
+            idx = to_time_index(start.hour, start.minute)
             start_idx = max(idx, self.min)
         self._print_list(out, start_idx, max_columns)
 
@@ -178,19 +166,23 @@ def parse_time(time):
 def parse_range(time):
     result = TIME_RANGE.match(time)
     if result is None:
-        return toindex(time), None
+        return to_time_index_from_string(time), None
     start = result.group(1)
     end = result.group(2)
-    return toindex(start), toindex(end)
+    return to_time_index_from_string(start), to_time_index_from_string(end)
 
 
-def toindex(time):
+def to_time_index_from_string(time):
     result = TIME_REGEX.match(time)
     if result is None:
         raise TimeFormatException('"' + time + '" is not a valid time')
     hour = int(result.group(1))
     minute = 0 if result.group(2) is None else int(result.group(2))
 
+    return to_time_index(hour, minute)
+
+
+def to_time_index(hour, minute):
     if minute < 30:
         return hour * 2
     else:
@@ -214,8 +206,6 @@ def main():
             size = shutil.get_terminal_size((-1, -1))
             max_columns = size.columns if size.columns != -1 else None
             plan.current(sys.stdout, datetime.datetime.now().time(), max_columns=max_columns)
-        elif action == 'init':
-            PlanDb.init(file)
         elif action == 'list':
             plan = PlanDb.read(file)
             version = -1 if len(sys.argv) < 4 else int(sys.argv[3])

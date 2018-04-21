@@ -36,7 +36,6 @@ function plan --description='Daily planning util'
             return 1
         end
         test 1 -lt (count $argv); and set -l CMD_ARGS $filename $action $argv[2..-1]; or set -l CMD_ARGS $filename $action
-        echo $CMD_ARGS
         command python3 "$PLANS_HOME/plan.py" $CMD_ARGS
     end
 end
@@ -54,7 +53,6 @@ end
 complete -f -c plan
 complete -f -c plan -n '__plan_needs_command' -a 'create'
 complete -f -c plan -n '__plan_needs_command' -a 'current'
-complete -f -c plan -n '__plan_needs_command' -a 'init'
 complete -f -c plan -n '__plan_needs_command' -a 'list'
 complete -f -c plan -n '__plan_needs_command' -a 'replan'
 complete -f -c plan -n '__plan_needs_command' -a 'set'
