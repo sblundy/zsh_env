@@ -22,11 +22,11 @@ class PlanDb:
             plan_idx = version - 1 if version != -1 else len(self.plans) - 1
             self.plans[plan_idx].list(out)
 
-    def set(self, time, action):
+    def set(self, time, action, cutoff=None):
         if len(self.plans) == 0:
             self.plans.append(Plan(1))
         plan = self.plans[len(self.plans) - 1]
-        plan.set(time, action)
+        plan.set(time, action, cutoff)
 
     def replan(self, starting):
         if len(self.plans) > 0:
@@ -38,10 +38,10 @@ class PlanDb:
                 new_plan.set(to_time_str(idx), old_plan.get(to_time_str(idx)))
             self.plans.append(new_plan)
 
-    def rm(self, time):
+    def rm(self, time, cutoff=None):
         if len(self.plans) > 0:
             plan = self.plans[len(self.plans) - 1]
-            plan.rm(time)
+            plan.rm(time, cutoff)
 
     @staticmethod
     def from_tsv_string(tsvstr):
@@ -56,7 +56,7 @@ class PlanDb:
                         if len(plan_db.plans) == plan_idx:
                             plan_db.plans.append(Plan(plan_idx + 1))
                         plan = plan_db.plans[plan_idx]
-                        plan.set(time, row[i])
+                        plan.set(time, row[i], None)
         return plan_db
 
     def to_tsv_string(self, out):
@@ -94,17 +94,28 @@ class PlanDb:
             self.to_tsv_string(tsvfile)
 
 
+def ask_question(question):
+    print(question)
+    return sys.stdin.readline()
+
+
 class Plan:
-    def __init__(self, version):
+    def __init__(self, version, ask_question_func=ask_question):
         self.plan = []
         for i in range(0, 48):
             self.plan.append('')
         self.version = version
         self.min = 48
         self.max = 0
+        self.ask_question = ask_question_func
 
-    def set(self, time, action):
+    def set(self, time, action, cutoff=None):
+        curr = -1 if cutoff is None else to_time_index(cutoff.hour, cutoff.minute)
         for idx in parse_time(time):
+            if idx < curr and idx < 24:
+                answer = self.ask_question('Did you mean PM? [Y/n]')
+                if answer.lower() != "n\n":
+                    idx += 24
             if idx < self.min:
                 self.min = idx
             if idx > self.max:
@@ -117,8 +128,8 @@ class Plan:
         while self.max >= 0 and (self.plan[self.max] == '' or self.plan[self.max] is None):
             self.max -= 1
 
-    def rm(self, time):
-        self.set(time, None)
+    def rm(self, time, cutoff=None):
+        self.set(time, None, cutoff)
 
     def get(self, time):
         return self.plan[to_time_index_from_string(time)]
@@ -216,11 +227,11 @@ def main():
             plan.write(file)
         elif action == 'set':
             plan = PlanDb.read(file)
-            plan.set(sys.argv[3], sys.argv[4])
+            plan.set(sys.argv[3], sys.argv[4], datetime.datetime.now().time())
             plan.write(file)
         elif action == 'rm':
             plan = PlanDb.read(file)
-            plan.rm(sys.argv[3])
+            plan.rm(sys.argv[3], datetime.datetime.now().time())
             plan.write(file)
     except TimeFormatException as err:
         print(err.message, file=sys.stderr)

@@ -90,6 +90,32 @@ class TestPlan(unittest.TestCase):
         output = sut.get('8:00')
         self.assertEqual(output, 'test')
 
+    def test_set_meant_pm(self):
+        asked_questions = []
+
+        def mock_ask_questions(question):
+            asked_questions.append(question)
+            return '\n'
+        sut = plan.Plan(1, mock_ask_questions)
+        sut.set('2', 'test', datetime.time(8))
+        output = sut.get('2:00')
+        self.assertEqual(output, '')
+        output = sut.get('14:00')
+        self.assertEqual(output, 'test')
+
+    def test_set_meant_am(self):
+        asked_questions = []
+
+        def mock_ask_questions(question):
+            asked_questions.append(question)
+            return 'n\n'
+        sut = plan.Plan(1, mock_ask_questions)
+        sut.set('2', 'test', datetime.time(8))
+        output = sut.get('14:00')
+        self.assertEqual(output, '')
+        output = sut.get('2:00')
+        self.assertEqual(output, 'test')
+
 
 class TestPlanDb(unittest.TestCase):
     def test_from_tsv_string(self):
