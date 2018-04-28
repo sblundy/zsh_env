@@ -63,8 +63,29 @@ function __plan_needs_command
   end
 end
 
+function __plan_using_command
+  set -l name $argv[1]
+  set -l cmd (commandline -opc)
+
+  if test $cmd[2] = $name
+    return 0
+  else
+    return 1
+  end
+end
+
+function __plan_available_templates -d "description"
+  for plan_file in (ls $PLANS_DIR/*.plan)
+    if basename "$plan_file" | grep -q -v -E '20[[:digit:]]{2}-[01][[:digit:]]-[0123][[:digit:]].plan'
+      string replace '.plan' '' (basename "$plan_file")
+    end
+  end
+end
+
 complete -f -c plan
 complete -f -c plan -n '__plan_needs_command' -a 'create'
+complete -f -c plan -n '__plan_using_command create' -a '(__plan_available_templates)'
+
 complete -f -c plan -n '__plan_needs_command' -a 'current'
 complete -f -c plan -n '__plan_needs_command' -a 'list'
 complete -f -c plan -n '__plan_needs_command' -a 'replan'
