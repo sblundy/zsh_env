@@ -4,28 +4,31 @@ if test -z "$PLANS_HOME"
     cd $ORG_PWD
 end
 
+if test -z "$PLANS_DIR"
+    set PLANS_DIR "$HOME/plans"
+end
+
 function plan --description='Daily planning util'
     set -l action $argv[1]
-    set -l plans_dir "$HOME/plans"
 
     if test -z "$action"
         set action 'current'
     end
 
     set -l filename_basename (date '+%Y-%m-%d')
-    set -l filename "$plans_dir/$filename_basename.plan"
+    set -l filename "$PLANS_DIR/$filename_basename.plan"
 
     switch $action
     case create
         set -l default_file_name "Default"
         if set -q argv[2]
             set default_file_name $argv[2]
-        else if not test -e "$plans_dir/Default.plan"
+        else if not test -e "$PLANS_DIR/Default.plan"
             touch $filename
             return 0
         end
 
-        set -l default_file "$plans_dir/$default_file_name.plan"
+        set -l default_file "$PLANS_DIR/$default_file_name.plan"
         if not test -e "$default_file"
             echo "Error: $default_file does not exist" 1>&2
             return 1
