@@ -129,7 +129,7 @@ class Plan:
             self.max -= 1
 
     def rm(self, time, cutoff=None):
-        self.set(time, None, cutoff)
+        self.set(time, '', cutoff)
 
     def get(self, time):
         return self.plan[to_time_index_from_string(time)]
