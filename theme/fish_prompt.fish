@@ -8,32 +8,32 @@ set _prompt_user green
 set _prompt_path cyan
 
 function _format_duration
-  set -l duration $argv[1]
+    set -l duration $argv[1]
 
-  #Select format depending on whether there are minutes, seconds, or just ms
+    #Select format depending on whether there are minutes, seconds, or just ms
 
-  if test -z "$duration"
-    #Special case of no duration
-    echo -n '0'
-  else if test $duration -eq 0
-    #No duration
-    echo -n '0'
-  else if test $duration -lt 100
-    #Milliseconds
-    printf '%dms' $duration
-  else if test $duration -lt 60000
-    #Display seconds, w/ milliseconds as fraction of a second
-    set -l seconds (math $duration / 1000)
-    set -l milliseconds (math $duration '%' 1000)
-    printf '%d.%03d' $seconds $milliseconds
-  else
-    #Display minutes:seconds, w/ milliseconds as fraction of a second
-    set -l minutes (math $duration / 60000)
-    set duration (math $duration '%' 60000)
-    set -l seconds (math $duration / 1000)
-    set -l milliseconds (math $duration '%' 1000)
-    printf '%d:%02d.%03d' $minutes $seconds $milliseconds
-  end
+    if test -z "$duration"
+        #Special case of no duration
+        echo -n '0'
+    else if test $duration -eq 0
+        #No duration
+        echo -n '0'
+    else if test $duration -lt 100
+        #Milliseconds
+        printf '%dms' $duration
+    else if test $duration -lt 60000
+        #Display seconds, w/ milliseconds as fraction of a second
+        set -l seconds (math $duration / 1000)
+        set -l milliseconds (math $duration '%' 1000)
+        printf '%d.%03d' $seconds $milliseconds
+    else
+        #Display minutes:seconds, w/ milliseconds as fraction of a second
+        set -l minutes (math $duration / 60000)
+        set duration (math $duration '%' 60000)
+        set -l seconds (math $duration / 1000)
+        set -l milliseconds (math $duration '%' 1000)
+        printf '%d:%02d.%03d' $minutes $seconds $milliseconds
+    end
 end
 
 function start_segment -a bg_color fg_color
@@ -86,13 +86,13 @@ function fish_prompt --description 'Write out the prompt'
 
     #Status if last command failed
     if not test $last_status -eq 0
-		set_color $fish_color_error
+        set_color $fish_color_error
         echo -n "$error_section_open"
-		set_color --background $fish_color_error
-		set_color black
+        set_color --background $fish_color_error
+        set_color black
         echo -n "$last_status"
         set_color normal
-		set_color $fish_color_error
+        set_color $fish_color_error
         echo -n "$error_section_close "
     end
 
