@@ -15,8 +15,7 @@ function plan --description='Daily planning util'
         set action 'current'
     end
 
-    set -l filename_basename (date '+%Y-%m-%d')
-    set -l filename "$PLANS_DIR/$filename_basename.plan"
+    set -l filename (__plan_current_file)
 
     switch $action
         case create
@@ -55,6 +54,11 @@ function plan --description='Daily planning util'
     end
 end
 
+function __plan_current_file
+    set -l filename_basename (date '+%Y-%m-%d')
+    echo "$PLANS_DIR/$filename_basename.plan"
+end
+
 function __plan_needs_command
     set -l cmd (commandline -opc)
 
@@ -76,7 +80,7 @@ function __plan_using_command
     end
 end
 
-function __plan_available_templates -d "description"
+function __plan_available_templates
     for plan_file in (ls $PLANS_DIR/*.plan)
         if basename "$plan_file" | grep -q -v -E '20[[:digit:]]{2}-[01][[:digit:]]-[0123][[:digit:]].plan'
             string replace '.plan' '' (basename "$plan_file")
@@ -84,12 +88,27 @@ function __plan_available_templates -d "description"
     end
 end
 
+function __plan_all_versions
+    set -l max_version 0
+    set -l filename (__plan_current_file)
+    while read -la line
+        set -l tabs_only (echo "$line" | sed 's/[^\t]//g')
+        set -l line_len (string length "$tabs_only")
+        if test $line_len -gt $max_version
+            set max_version $line_len
+        end
+    end < "$filename"
+    seq $max_version
+end
+
 complete -f -c plan
 complete -f -c plan -n '__plan_needs_command' -a 'create'
-complete -f -c plan -n '__plan_using_command create' -a '(__plan_available_templates)'
+complete -f -c plan -n '__plan_using_command create' -a '(__plan_available_templates)' -d 'Optional: Template to use'
 
 complete -f -c plan -n '__plan_needs_command' -a 'current'
 complete -f -c plan -n '__plan_needs_command' -a 'list'
+complete -f -c plan -n '__plan_using_command list' -a '(__plan_all_versions)' -d 'Optional: The version to be listed'
+
 complete -f -c plan -n '__plan_needs_command' -a 'replan'
 complete -f -c plan -n '__plan_needs_command' -a 'set'
 complete -f -c plan -n '__plan_needs_command' -a 'rm'
