@@ -218,26 +218,22 @@ def main():
     file = sys.argv[1]
     action = sys.argv[2]
 
+    plan = PlanDb.read(file)
     try:
         if action == 'current':
-            plan = PlanDb.read(file)
             size = shutil.get_terminal_size((-1, -1))
             max_columns = size.columns if size.columns != -1 else None
             plan.current(sys.stdout, datetime.datetime.now().time(), max_columns=max_columns)
         elif action == 'list':
-            plan = PlanDb.read(file)
             version = -1 if len(sys.argv) < 4 else int(sys.argv[3])
             plan.list(sys.stdout, version)
         elif action == 'replan':
-            plan = PlanDb.read(file)
             plan.replan(datetime.datetime.now().time())
             plan.write(file)
         elif action == 'set':
-            plan = PlanDb.read(file)
             plan.set(sys.argv[3], sys.argv[4], datetime.datetime.now().time())
             plan.write(file)
         elif action == 'rm':
-            plan = PlanDb.read(file)
             plan.rm(sys.argv[3], datetime.datetime.now().time())
             plan.write(file)
     except TimeFormatException as err:
