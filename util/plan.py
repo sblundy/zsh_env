@@ -102,7 +102,7 @@ def ask_question(question):
 class Plan:
     def __init__(self, version, ask_question_func=ask_question):
         self.plan = []
-        for i in range(0, 48):
+        for _ in range(0, 48):
             self.plan.append('')
         self.version = version
         self.min = 48
@@ -159,9 +159,9 @@ class TimeFormatException(Exception):
         self.message = message
 
 
-TIME_REGEX = re.compile("([012]?\d)(?::(\d\d))?")
-TIME_RANGE = re.compile("([0-9:]{1,5})-([0-9:]{1,5})")
-TIME_RANGE_EXCLUSIVE = re.compile("(1?\d:[0-5]\d [AP]M) - (1?\d:[0-5]\d [AP]M)")
+TIME_REGEX = re.compile(r"([012]?\d)(?::(\d\d))?")
+TIME_RANGE = re.compile(r"([0-9:]{1,5})-([0-9:]{1,5})")
+TIME_RANGE_EXCLUSIVE = re.compile(r"(1?\d:[0-5]\d [AP]M) - (1?\d:[0-5]\d [AP]M)")
 TIME_RANGE_EXCLUSIVE_FORMAT = '%I:%M %p'
 
 
