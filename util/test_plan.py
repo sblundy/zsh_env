@@ -202,11 +202,11 @@ class TestPlanDb(unittest.TestCase):
 
 class TestTimeStringParsing(unittest.TestCase):
     def test_simple(self):
-        output = plan.toindex('6:00')
+        output = plan.to_time_index_from_string('6:00')
         self.assertEqual(output, 12)
 
     def test_hour_only(self):
-        output = plan.toindex('6')
+        output = plan.to_time_index_from_string('6')
         self.assertEqual(output, 12)
 
     def test_range_single_time(self):
