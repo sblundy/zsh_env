@@ -103,11 +103,11 @@ end
 
 complete -f -c plan
 complete -f -c plan -n '__plan_needs_command' -a 'create'
-complete -f -c plan -n '__plan_using_command create' -a '(__plan_available_templates)' -d 'Optional: Template to use'
+complete -f -c plan -n '__plan_using_command create' -a '(__plan_available_templates)'
 
 complete -f -c plan -n '__plan_needs_command' -a 'current'
 complete -f -c plan -n '__plan_needs_command' -a 'list'
-complete -f -c plan -n '__plan_using_command list' -a '(__plan_all_versions)' -d 'Optional: The version to be listed'
+complete -f -c plan -n '__plan_using_command list' -a '(__plan_all_versions)'
 
 complete -f -c plan -n '__plan_needs_command' -a 'replan'
 complete -f -c plan -n '__plan_needs_command' -a 'set'
