@@ -34,6 +34,11 @@ function plan --description='Daily planning util'
             else
                 cp "$default_file" $filename
             end
+        case import
+            for event in (icalBuddy -ea -npn -nc -iep 'datetime,title' -b '' -ps "|\t|" eventsToday)
+                set -l event_props (string split \x09 $event)
+                command python3 "$PLANS_HOME/plan.py" $filename set $event_props[2] $event_props[1]
+            end
         case set replan rm
             if not test -e "$filename"
                 echo "Today's plan hasn't been initialized" 1>&2
@@ -105,6 +110,7 @@ complete -f -c plan
 complete -f -c plan -n '__plan_needs_command' -a 'create'
 complete -f -c plan -n '__plan_using_command create' -a '(__plan_available_templates)'
 
+complete -f -c plan -n '__plan_needs_command' -a 'import'
 complete -f -c plan -n '__plan_needs_command' -a 'current'
 complete -f -c plan -n '__plan_needs_command' -a 'list'
 complete -f -c plan -n '__plan_using_command list' -a '(__plan_all_versions)'

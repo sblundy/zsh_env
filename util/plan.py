@@ -161,9 +161,16 @@ class TimeFormatException(Exception):
 
 TIME_REGEX = re.compile("([012]?\d)(?::(\d\d))?")
 TIME_RANGE = re.compile("([0-9:]{1,5})-([0-9:]{1,5})")
+TIME_RANGE_EXCLUSIVE = re.compile("(1?\d:[0-5]\d [AP]M) - (1?\d:[0-5]\d [AP]M)")
+TIME_RANGE_EXCLUSIVE_FORMAT = '%I:%M %p'
 
 
 def parse_time(time):
+    exclusive_result = TIME_RANGE_EXCLUSIVE.match(time)
+    if exclusive_result is not None:
+        start = datetime.datetime.strptime(exclusive_result.group(1), TIME_RANGE_EXCLUSIVE_FORMAT)
+        end = datetime.datetime.strptime(exclusive_result.group(2), TIME_RANGE_EXCLUSIVE_FORMAT)
+        return range(to_time_index(start.hour, start.minute), to_time_index(end.hour, end.minute))
     times = []
     for segment in time.split(','):
         (start, end) = parse_range(segment)

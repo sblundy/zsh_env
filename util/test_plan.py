@@ -116,6 +116,13 @@ class TestPlan(unittest.TestCase):
         output = sut.get('2:00')
         self.assertEqual(output, 'test')
 
+    def test_range_exclusive(self):
+        buf = io.StringIO()
+        sut = plan.Plan(1)
+        sut.set('6:00 AM - 7:00 AM', 'test')
+        sut.current(buf, None)
+        self.assertEqual(buf.getvalue(), '\x1b[1mTime  v1\x1b[0m\n06:00 test\n06:30 test\n')
+
 
 class TestPlanDb(unittest.TestCase):
     def test_from_tsv_string(self):
