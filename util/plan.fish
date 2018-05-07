@@ -34,12 +34,14 @@ function plan --description='Daily planning util'
             else
                 cp "$default_file" $filename
             end
+            command python3 "$PLANS_HOME/plan.py" $filename current
         case import
             cp $filename "$filename.bk"
             for event in (icalBuddy -ea -npn -nc -iep 'datetime,title' -b '' -ps "|\t|" eventsToday)
                 set -l event_props (string split \x09 $event)
                 command python3 "$PLANS_HOME/plan.py" $filename set $event_props[2] $event_props[1]
             end
+            command python3 "$PLANS_HOME/plan.py" $filename current
         case set replan rm
             if not test -e "$filename"
                 echo "Today's plan hasn't been initialized" 1>&2
